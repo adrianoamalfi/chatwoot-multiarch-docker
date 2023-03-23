@@ -10,6 +10,7 @@ LABEL org.opencontainers.image.version "v2.15.0"
 LABEL org.opencontainers.image.base.name "ruby:3.1.3-alpine3.16"
 LABEL org.opencontainers.image.licenses "MIT"
 
+
 # ARG default to production settings
 # For development docker-compose file overrides ARGS
 ARG BUNDLE_WITHOUT="development:test"
@@ -39,7 +40,10 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-COPY --from=chatwoot/chatwoot:latest /app/Gemfile /app/Gemfile.lock ./
+RUN apk add --no-cache git
+RUN git clone https://github.com/chatwoot/chatwoot.git .
+
+# COPY --from=chatwoot/chatwoot:latest /app/Gemfile /app/Gemfile.lock ./
 
 # natively compile grpc and protobuf to support alpine musl (dialogflow-docker workflow)
 # https://github.com/googleapis/google-cloud-ruby/issues/13306
@@ -54,10 +58,10 @@ RUN if [ "$RAILS_ENV" = "production" ]; then \
   else bundle install -j 4 -r 3; \
   fi
 
-COPY --from=chatwoot/chatwoot:latest /app/package.json /app/yarn.lock ./
+# COPY --from=chatwoot/chatwoot:latest /app/package.json /app/yarn.lock ./
 RUN yarn install
 
-COPY --from=chatwoot/chatwoot:latest /app /app
+# COPY --from=chatwoot/chatwoot:latest /app /app
 
 # creating a log directory so that image wont fail when RAILS_LOG_TO_STDOUT is false
 # https://github.com/chatwoot/chatwoot/issues/701
